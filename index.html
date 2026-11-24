@@ -369,6 +369,71 @@ h1, h2, h3, p { margin: 0; }
 .overzicht .ov-land { fill: var(--land-buur); stroke: var(--inkt-2); stroke-width: 1; vector-effect: non-scaling-stroke; }
 .overzicht .ov-vak { fill: rgb(200 56 42 / 0.12); stroke: var(--route); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
 
+/* 3D-scène: de kaart kantelt, zuilen staan op de plekken waar ik werkte of leerde */
+.kaart { perspective: 1500px; perspective-origin: 50% 25%; }
+.wereld, .zuilen { transform-origin: 50% 55%; transition: transform 1200ms var(--zacht-uit), background-color 600ms ease-out; }
+.kaart.drieD .wereld, .kaart.drieD .zuilen { transform: rotateX(var(--kanteling, 54deg)) rotateZ(var(--draai, 0deg)) scale(1.18); }
+.kaart.live .wereld, .kaart.live .zuilen { transition: none; }
+.kaart.drieD { background: linear-gradient(180deg, #e8eef0 0%, #dbe7eb 30%, var(--zee) 55%); }
+.kaart.drieD .wereld { cursor: move; }
+.zuilen { position: absolute; inset: 0; pointer-events: none; transform-style: preserve-3d; z-index: 1; visibility: hidden; transition: transform 1200ms var(--zacht-uit), visibility 0s linear 1100ms; }
+.kaart.drieD .zuilen { visibility: visible; transition: transform 1200ms var(--zacht-uit), visibility 0s; }
+.zuil { position: absolute; left: 0; top: 0; transform-style: preserve-3d; }
+.groei { transform-style: preserve-3d; transform: scaleZ(0.001); transition: transform 1100ms cubic-bezier(0.34, 1.3, 0.64, 1); transition-delay: var(--vertraging, 0ms); }
+.kaart.drieD .zuil.aan .groei { transform: scaleZ(1); }
+.kant { position: absolute; left: 0; top: 0; transform-style: preserve-3d; }
+.vlak { position: absolute; left: -10px; top: calc(10px - var(--h)); width: 20px; height: var(--h); transform-origin: 50% 100%; transform: rotateX(-90deg); background: linear-gradient(180deg, #e0523f, #a92b1f); opacity: 0.94; }
+.kant:nth-child(2) .vlak, .kant:nth-child(4) .vlak { background: linear-gradient(180deg, #c03a2b, #861f16); }
+.dak { position: absolute; left: -10px; top: -10px; width: 20px; height: 20px; background: #f07a66; transform: translateZ(var(--h)); }
+.zuil-label { position: absolute; left: 0; top: 0; transform: translateZ(calc(var(--h) + 6px)) rotateZ(calc(var(--draai, 0deg) * -1)) rotateX(calc(var(--kanteling, 54deg) * -1)); transform-style: preserve-3d; }
+.zuil-label span { opacity: 0; transition: opacity 400ms ease-out; }
+.kaart.drieD .zuil.aan .zuil-label span { opacity: 1; transition-delay: calc(var(--vertraging, 0ms) + 700ms); }
+.zuil-label span { display: block; transform: translate(-50%, -100%); white-space: nowrap; padding: 3px 8px; border-radius: 4px; background: var(--donker); color: #fff; font: 600 12px var(--ui); box-shadow: 0 4px 10px rgb(0 0 0 / 0.2); }
+.zuil-label small { display: block; font: 500 10.5px var(--mono); color: #ef9c8f; }
+.kaart.drieD .callout, .kaart.drieD .overzicht { opacity: 0; pointer-events: none; }
+.knop-3d { font: 700 12.5px var(--ui) !important; }
+.knop-3d[aria-pressed="true"] { background: var(--inkt) !important; color: var(--paneel); }
+
+/* Nachtkaart: alleen de kaart zelf wordt donker, de panelen eromheen blijven licht */
+.kaart[data-basis="nacht"] { background: #0d181e; }
+.kaart[data-basis="nacht"].drieD { background: linear-gradient(180deg, #05080a 0%, #0a1317 35%, #0d181e 60%); }
+.kaart[data-basis="nacht"] :is(.wereld, .jaarbadge, .noord) { --zee: #0d181e; --zee-lijn: #1a3440; --land-nl: #1b1e1a; --land-buur: #121411; --inkt: #f1ede1; --inkt-2: #a5a397; --zacht: #8a887d; --lijn-2: #44463e; --route: #ff5b45; --route-vlak: rgb(255 91 69 / 0.12); }
+.kaart[data-basis="nacht"] .wereld .provincie { stroke: #3a3c34; }
+.kaart[data-basis="nacht"] .wereld .provincie.aan { fill: rgb(255 91 69 / 0.17); }
+.kaart[data-basis="nacht"] .wereld :is(.rivier, .meer) { stroke: #2d7896; }
+.kaart[data-basis="nacht"] .wereld .route { filter: drop-shadow(0 0 3px rgb(255 91 69 / 0.9)); }
+.kaart[data-basis="nacht"] .wereld .provnaam { fill: #66645b; }
+.kaart[data-basis="nacht"] .wereld .provnaam.aan { fill: #ff8a78; }
+.kaart[data-basis="nacht"] .jaarbadge strong { text-shadow: 0 0 22px #0d181e; }
+.kaart[data-basis="nacht"] .jaarbadge span { background: var(--route); color: #fff; }
+.kaart[data-basis="nacht"]::after { opacity: 0.05; mix-blend-mode: screen; }
+.basis { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin-top: 6px; border: 1px solid var(--lijn-2); border-radius: 6px; overflow: hidden; }
+.basis button { padding: 7px 0; border: 0; background: var(--paneel); font-size: 13.5px; font-weight: 600; color: var(--zacht); cursor: pointer; transition: background-color 160ms ease-out, color 160ms ease-out; }
+.basis button + button { border-left: 1px solid var(--lijn-2); }
+.basis button[aria-pressed="true"] { background: var(--inkt); color: var(--paneel); }
+
+/* Dradenkruis met coördinaten */
+.kruis { position: absolute; inset: 0; z-index: 3; pointer-events: none; opacity: 0; transition: opacity 160ms ease-out; }
+.kruis.aan { opacity: 1; }
+.kruis i { position: absolute; background: rgb(200 56 42 / 0.35); }
+.kruis .kh { left: 0; right: 0; top: 0; height: 1px; }
+.kruis .kv { top: 0; bottom: 0; left: 0; width: 1px; }
+.kruis .kt { position: absolute; left: 0; top: 0; padding: 4px 7px; background: var(--donker); color: #f1ede1; border-radius: 4px; font: 500 11px/1.35 var(--mono); white-space: pre; }
+.kaart.drieD .kruis { display: none; }
+
+/* Terminal */
+.terminal { position: absolute; left: 14px; bottom: 92px; z-index: 9; width: min(620px, calc(100% - 28px)); background: var(--donker); color: var(--donker-tekst); border-radius: 8px; box-shadow: 0 18px 44px rgb(0 0 0 / 0.35); overflow: hidden; animation: opkomen 300ms var(--zacht-uit); }
+.terminal header { display: flex; align-items: center; justify-content: space-between; padding: 8px 8px 8px 14px; border-bottom: 1px solid rgb(255 255 255 / 0.1); font: 500 12px var(--mono); color: #a9a699; }
+.terminal pre { margin: 0; padding: 12px 14px 4px; height: 240px; overflow-y: auto; font: 12.5px/1.6 var(--mono); white-space: pre-wrap; }
+.terminal pre .in { color: #b9e3a6; }
+.terminal pre .fout { color: #f0a58f; }
+.terminal form { display: flex; align-items: center; gap: 8px; padding: 6px 14px 12px; font: 12.5px var(--mono); }
+.terminal form span { color: #b9e3a6; white-space: nowrap; }
+.terminal input { flex: 1; border: 0; background: none; color: #fff; font: 13px var(--mono); padding: 4px 0; }
+.terminal input:focus-visible { outline: none; }
+.status .knop { height: 24px; font-size: 12.5px; padding: 0 10px; }
+.toets { font: 500 11px var(--mono); padding: 1px 5px; border: 1px solid var(--lijn-2); border-radius: 3px; color: var(--zacht); }
+
 /* Smal scherm: onder elkaar */
 @media (max-width: 960px) {
   .app { height: auto; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 72svh auto auto auto; grid-template-areas: "balk" "kaart" "rechts" "links" "status"; }
@@ -389,6 +454,9 @@ h1, h2, h3, p { margin: 0; }
   @keyframes stroom-v { from { background-position: 0 0; } to { background-position: 0 10px; } }
   .console { bottom: 92px; }
   .callout { width: 200px; }
+  .terminal { bottom: 92px; }
+  .terminal pre { height: 180px; }
+  #terminal-open { display: none; }
   .callout p { display: none; }
   .overzicht { display: none; }
   .console li { grid-template-columns: 74px minmax(0, 1fr); }
@@ -428,6 +496,13 @@ h1, h2, h3, p { margin: 0; }
       <ol class="tijdlijn" id="tijdlijn"></ol>
     </section>
     <section class="blok">
+      <h2>Basiskaart</h2>
+      <div class="basis" role="group" aria-label="Basiskaart">
+        <button type="button" data-basis="topo" aria-pressed="false">Topo</button>
+        <button type="button" data-basis="nacht" aria-pressed="true">Nacht</button>
+      </div>
+    </section>
+    <section class="blok">
       <h2>Lagen</h2>
       <label class="laag"><input type="checkbox" data-laag="route" checked><span class="teken"><i class="t-route"></i></span>Loopbaanroute</label>
       <label class="laag"><input type="checkbox" data-laag="werk" checked><span class="teken"><i class="t-werk"></i></span>Werkervaring</label>
@@ -446,7 +521,7 @@ h1, h2, h3, p { margin: 0; }
     </section>
   </aside>
 
-  <main class="kaart" id="kaart" aria-label="Kaart met mijn loopbaan">
+  <main class="kaart" id="kaart" data-basis="nacht" aria-label="Kaart met mijn loopbaan">
     <svg class="wereld" id="wereld" role="img" aria-label="Kaart van Nederland met de route van Tilburg via Overijssel naar Nieuwegein" tabindex="0">
       <defs>
         <pattern id="golven" width="9000" height="9000" patternUnits="userSpaceOnUse">
@@ -485,9 +560,17 @@ h1, h2, h3, p { margin: 0; }
     <div class="zoomknoppen">
       <button type="button" id="zoom-in" aria-label="Inzoomen"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
       <button type="button" id="zoom-uit" aria-label="Uitzoomen"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+      <button type="button" id="knop-3d" class="knop-3d" aria-pressed="false" aria-label="3D-weergave">3D</button>
       <button type="button" id="zoom-alles" aria-label="Zoom naar heel Nederland"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
     </div>
 
+    <div class="zuilen" id="zuilen" aria-hidden="true"></div>
+    <div class="kruis" id="kruis" aria-hidden="true"><i class="kh"></i><i class="kv"></i><span class="kt"></span></div>
+    <section class="terminal" id="terminal" hidden aria-label="Terminal">
+      <header><span>youri@cv: ~</span><button class="dicht" type="button" id="terminal-dicht" aria-label="Terminal sluiten"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></header>
+      <pre id="terminal-uit" aria-live="polite"></pre>
+      <form id="terminal-form"><span>youri@cv:~$</span><label class="verborgen" for="terminal-in">Commando</label><input id="terminal-in" autocomplete="off" spellcheck="false"></form>
+    </section>
     <div class="callout weg" id="callout" aria-live="polite"><div class="c-inhoud" id="callout-inhoud"></div></div>
     <div class="overzicht" aria-hidden="true">
       <svg viewBox="5000 -630000 290000 340000"><path class="ov-land" d="M197700 -306950L190600 -307100L184000 -307250L180400 -307800L176600 -309550L174800 -313000L172750 -317050L179550 -326900L179800 -330000L180550 -333300L185300 -344150L185750 -348600L183750 -351650L180450 -353400L170350 -356650L165600 -361050L163550 -365100L158050 -364900L149750 -363350L142950 -365500L134950 -373050L133250 -379850L132250 -384850L127500 -384100L124200 -379850L117450 -379550L115200 -382850L113000 -387700L102700 -381600L99450 -381800L95450 -384750L93500 -387700L89200 -386000L85150 -382600L86600 -375800L79550 -375300L74100 -378100L68100 -379950L58900 -384750L46050 -381150L37150 -386000L29900 -386550L25250 -390350L20650 -396450L24250 -400400L27550 -401650L41050 -402100L50950 -399400L68450 -385950L72950 -386050L77750 -387500L75300 -391200L70800 -393050L64400 -396600L59250 -401750L71500 -403050L69800 -405600L68350 -410050L55700 -425550L58050 -429750L61400 -438600L65500 -445850L68750 -447750L74300 -452850L85850 -468150L93400 -480600L98950 -495200L107200 -536100L109700 -543000L113400 -550700L118200 -549100L121350 -546950L133000 -552700L153100 -567700L158850 -580850L164600 -586850L187350 -598950L199800 -602500L219150 -603700L233250 -606050L250000 -607100L256600 -599900L260300 -594550L266400 -591800L275800 -589900L275350 -579250L276100 -558400L275450 -554750L271300 -545750L267300 -530000L266350 -519550L247150 -517200L244750 -515200L245300 -510400L243450 -505550L244250 -502100L247500 -498250L253150 -495850L259300 -495800L262450 -496250L264750 -493600L267250 -489400L267150 -483800L266350 -476650L263800 -469800L255550 -461900L251700 -459150L248250 -457500L245900 -452850L252200 -444450L250300 -439800L248150 -436650L232900 -430000L226450 -430500L223000 -427350L217750 -429600L208550 -432800L205350 -431600L197700 -427450L193750 -423950L193800 -419500L201100 -408000L203600 -405700L203650 -401250L207200 -395900L211000 -389150L211300 -384900L211100 -380500L209200 -374300L203050 -359750L203600 -354700L207400 -353000L195150 -340950L188850 -339700L188600 -335300L190650 -332800L194950 -331650L198550 -329150L201600 -324200L197700 -306950ZM74100 -378100L73000 -373850L70400 -369300L61000 -362900L51100 -358650L46350 -359300L42900 -361700L35950 -366500L28950 -367800L24350 -365400L21300 -363200L16600 -365650L14900 -368750L13150 -378500L18450 -380050L30000 -380550L38700 -376850L50200 -375050L59300 -379500L66250 -375350L74100 -378100ZM217850 -614300L208550 -610350L214950 -614650L217850 -614300ZM191150 -608250L178000 -606400L173450 -607750L176300 -609700L187550 -609950L190900 -608800L191150 -608250ZM136550 -591350L124000 -583300L131000 -591550L136550 -591350ZM150950 -600000L144700 -599050L141850 -600600L156950 -605000L166250 -606350L150950 -600000ZM121500 -564950L114650 -557050L110550 -559400L111600 -567350L121550 -577500L121500 -564950ZM55550 -417650L62400 -411550L64100 -407450L55550 -405300L46500 -412800L40500 -411200L38350 -414750L44650 -418650L55550 -417650ZM244200 -622650L238250 -622150L239850 -625100L245550 -627500L248650 -627550L244200 -622650Z"/><rect class="ov-vak" id="ov-vak"/></svg>
@@ -545,7 +628,8 @@ h1, h2, h3, p { margin: 0; }
     <span class="xy mono" id="xy">RD New (EPSG:28992)</span>
     <span class="schaalbalk"><i id="schaal-lijn"></i><span class="mono" id="schaal-tekst"></span></span>
     <span class="mono" id="schaal-getal"></span>
-    <span class="rechts-s">Sleep om te verschuiven, scroll om te zoomen</span>
+    <span class="rechts-s" id="hulp">Sleep om te verschuiven, scroll om te zoomen</span>
+    <button class="knop knop--licht" type="button" id="terminal-open">Terminal <span class="toets">`</span></button>
   </footer>
 
 </div>
@@ -705,7 +789,7 @@ const LOG = [
 ];
 
 // Regels van het opstartscherm
-const OPSTART = ["Verbinden met kaartservice", "Basiskaart, 12 provincies en rivieren geladen", "Projectie RD New (EPSG:28992)", "5 lagen en 5 kenmerken geladen", `${PROJECTEN.length} workspaces gevonden`];
+const OPSTART = ["Verbinden met kaartservice", "3D-scène voorbereid", "Basiskaart, 12 provincies en rivieren geladen", "Projectie RD New (EPSG:28992)", "5 lagen en 5 kenmerken geladen", `${PROJECTEN.length} workspaces gevonden`];
 
 /* =========================================================================
    Hulpfuncties
@@ -866,6 +950,7 @@ function teken() {
   $("schaal-tekst").textContent = lengte >= 1000 ? `${lengte / 1000} km` : `${lengte} m`;
   const schaal = k / 0.0002645833, rond = 10 ** (Math.floor(Math.log10(schaal)) - 1);
   $("schaal-getal").textContent = `1 : ${getal(Math.round(schaal / rond) * rond)}`;
+  if (zuilEls) plaatsZuilen();
 }
 
 let camera = 0;
@@ -895,20 +980,32 @@ function zoomRond(factor, px, py) {
 const naarPlek = (plek, hoogte = 0.5) => { const [x, y] = PLAATS[plek]; gaNaar({ x: x - 110000, y: -y - 170000 * hoogte, b: 220000, h: 170000 }); };
 
 let sleep = null;
-wereld.addEventListener("pointerdown", (e) => { cancelAnimationFrame(camera); sleep = { x: e.clientX, y: e.clientY, vak: { ...vak }, bewogen: false }; wereld.setPointerCapture(e.pointerId); });
+let zuilEls = null;
+let drieD = false, draai = 0, kanteling = 54, zwaai = 0, zwaaiStart = 0;
+wereld.addEventListener("pointerdown", (e) => { cancelAnimationFrame(camera); stopZwaai(); sleep = { x: e.clientX, y: e.clientY, vak: { ...vak }, bewogen: false, draai, kanteling }; wereld.setPointerCapture(e.pointerId); });
 wereld.addEventListener("pointermove", (e) => {
   const p = naarKaart(e.clientX, e.clientY);
-  $("xy").textContent = `RD New  X ${getal(p.x)}  Y ${getal(-p.y)}`;
+  if (!drieD) {
+    $("xy").textContent = `RD New  X ${getal(p.x)}  Y ${getal(-p.y)}`;
+    kruis(e, p);
+  }
   if (!sleep) return;
+  if (drieD) {
+    sleep.bewogen = true;
+    draai = sleep.draai + (e.clientX - sleep.x) * 0.3;
+    kanteling = klem(sleep.kanteling - (e.clientY - sleep.y) * 0.2, 20, 72);
+    zetCamera3D();
+    return;
+  }
   const dx = e.clientX - sleep.x, dy = e.clientY - sleep.y;
   if (Math.abs(dx) + Math.abs(dy) > 4) { sleep.bewogen = true; wereld.classList.add("slepen"); }
   const k = meterPerPixel();
   vak = { ...sleep.vak, x: sleep.vak.x - dx * k, y: sleep.vak.y - dy * k };
   teken();
 });
-wereld.addEventListener("pointerup", (e) => { if (sleep && !sleep.bewogen) { leegKlik(naarKaart(e.clientX, e.clientY)); kiesTab("info"); } sleep = null; wereld.classList.remove("slepen"); });
-wereld.addEventListener("pointerleave", () => ($("xy").textContent = "RD New (EPSG:28992)"));
-wereld.addEventListener("wheel", (e) => { e.preventDefault(); zoomRond(e.deltaY > 0 ? 1.18 : 1 / 1.18, e.clientX, e.clientY); }, { passive: false });
+wereld.addEventListener("pointerup", (e) => { if (sleep && !sleep.bewogen && !drieD) { leegKlik(naarKaart(e.clientX, e.clientY)); kiesTab("info"); } sleep = null; wereld.classList.remove("slepen"); });
+wereld.addEventListener("pointerleave", () => { $("xy").textContent = "RD New (EPSG:28992)"; $("kruis").classList.remove("aan"); });
+wereld.addEventListener("wheel", (e) => { e.preventDefault(); if (drieD) zoomRond(e.deltaY > 0 ? 1.12 : 1 / 1.12); else zoomRond(e.deltaY > 0 ? 1.18 : 1 / 1.18, e.clientX, e.clientY); }, { passive: false });
 wereld.addEventListener("keydown", (e) => {
   const k = meterPerPixel() * 60;
   const zet = { ArrowLeft: [-k, 0], ArrowRight: [k, 0], ArrowUp: [0, -k], ArrowDown: [0, k] }[e.key];
@@ -919,6 +1016,96 @@ wereld.addEventListener("keydown", (e) => {
 $("zoom-in").addEventListener("click", () => zoomRond(1 / 1.6));
 $("zoom-uit").addEventListener("click", () => zoomRond(1.6));
 $("zoom-alles").addEventListener("click", () => gaNaar(STARTVAK));
+
+/* Dradenkruis: volgt de muis en toont de RD-coördinaten ernaast */
+function kruis(e, p) {
+  if (e.pointerType === "touch") return;
+  const r = wereld.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+  const k = $("kruis");
+  k.classList.add("aan");
+  k.querySelector(".kh").style.transform = `translateY(${y}px)`;
+  k.querySelector(".kv").style.transform = `translateX(${x}px)`;
+  const tag = k.querySelector(".kt");
+  tag.textContent = `X ${getal(p.x)}\nY ${getal(-p.y)}`;
+  const links = x + 140 > r.width;
+  tag.style.transform = `translate(${links ? x - 12 - tag.offsetWidth : x + 12}px, ${y + 12}px)`;
+}
+
+/* =========================================================================
+   3D-scène: kantelen, zuilen per plek en een langzaam zwaaiende camera
+   ========================================================================= */
+// Jaren per punt, voor de hoogte van de zuilen. Tilburg is één zuil: ROC, Avans en Lagerwaard samen (2017 - 2023).
+// Nieuwegein telt vanaf 2025 tot vandaag.
+const JAREN = { tilburg: 6, lagerwaard: 0, overijssel: 2, nieuwegein: Math.max(0.5, (Date.now() - Date.UTC(2025, 0, 1)) / 31557600000) };
+const PIXELS_PER_JAAR = 26;
+zuilEls = puntEls.map(({ p }, i) => {
+  const jaren = JAREN[p.id] ?? 1;
+  const el = document.createElement("div");
+  el.className = "zuil";
+  el.style.setProperty("--h", `${Math.round(jaren * PIXELS_PER_JAAR)}px`);
+  el.style.setProperty("--vertraging", `${i * 140}ms`);
+  const tekst = p.id === "nieuwegein" ? "sinds 2025" : p.id === "tilburg" ? "6 jaar" : `${jaren} jaar`;
+  el.innerHTML = `<div class="groei">${[0, 90, 180, 270].map((h) => `<div class="kant" style="transform: rotateZ(${h}deg)"><div class="vlak"></div></div>`).join("")}<div class="dak"></div>
+    <div class="zuil-label"><span>${esc(p.label)}<small>${esc(tekst)}</small></span></div></div>`;
+  $("zuilen").appendChild(el);
+  return el;
+});
+function plaatsZuilen() {
+  const b = wereld.clientWidth, h = wereld.clientHeight;
+  puntEls.forEach((pe, i) => {
+    const el = zuilEls[i];
+    el.style.left = `${(pe.x - vak.x) / vak.b * b + pe.dx}px`;
+    el.style.top = `${(pe.y - vak.y) / vak.h * h + pe.dy}px`;
+    el.classList.toggle("aan", JAREN[pe.p.id] !== 0 && tijd >= pe.p.vanaf && !pe.g.classList.contains("verstopt"));
+    el.hidden = JAREN[pe.p.id] === 0;
+  });
+}
+function zetCamera3D() {
+  const kaart = $("kaart");
+  kaart.style.setProperty("--draai", `${draai}deg`);
+  kaart.style.setProperty("--kanteling", `${kanteling}deg`);
+}
+function zwaaien(nu) {
+  if (!zwaaiStart) zwaaiStart = nu;
+  draai = Math.sin((nu - zwaaiStart) / 5200) * 24;
+  zetCamera3D();
+  zwaai = requestAnimationFrame(zwaaien);
+}
+function stopZwaai() { cancelAnimationFrame(zwaai); zwaai = 0; }
+function zet3D(aan) {
+  drieD = aan;
+  const kaart = $("kaart");
+  stopZwaai();
+  kaart.classList.remove("live");
+  $("knop-3d").setAttribute("aria-pressed", String(aan));
+  $("knop-3d").textContent = aan ? "2D" : "3D";
+  $("knop-3d").setAttribute("aria-label", aan ? "Terug naar 2D" : "3D-weergave");
+  $("hulp").textContent = aan ? "Sleep om rond te draaien, scroll om te zoomen" : "Sleep om te verschuiven, scroll om te zoomen";
+  $("kruis").classList.remove("aan");
+  if (aan) {
+    stop();
+    if (tijd < EIND) zetTijd(EIND);
+    $("ws").hidden = true;
+    gaNaar(STARTVAK, 700);
+    draai = 0; kanteling = 54; zetCamera3D();
+    kaart.classList.add("drieD");
+    // Na het kantelen gaat de camera rustig heen en weer zwaaien
+    if (!bewegingUit) setTimeout(() => { if (!drieD) return; kaart.classList.add("live"); zwaaiStart = 0; zwaai = requestAnimationFrame(zwaaien); }, 1300);
+  } else {
+    draai = 0; kanteling = 54; zetCamera3D();
+    kaart.classList.remove("drieD");
+  }
+  plaatsZuilen();
+  plaatsCallout();
+}
+$("knop-3d").addEventListener("click", () => zet3D(!drieD));
+
+/* Basiskaart: topo of nacht */
+function zetBasis(naam) {
+  $("kaart").dataset.basis = naam;
+  document.querySelectorAll(".basis button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.basis === naam)));
+}
+document.querySelectorAll(".basis button").forEach((b) => b.addEventListener("click", () => zetBasis(b.dataset.basis)));
 new ResizeObserver(() => { vak = pasIn(vak.b > 1 ? vak : STARTVAK); teken(); }).observe(wereld);
 
 document.querySelectorAll("input[data-laag]").forEach((vinkje) => vinkje.addEventListener("change", () => {
@@ -940,7 +1127,7 @@ function plaatsCallout() {
   const pe = puntEls.find(({ p }) => p.kenmerken.includes(rolNu));
   const laagUit = pe && pe.g.classList.contains("verstopt");
   const b = wereld.clientWidth, h = wereld.clientHeight;
-  if (!pe || laagUit || !$("ws").hidden || !opgestart) { c.classList.add("weg"); return; }
+  if (!pe || laagUit || !$("ws").hidden || !opgestart || drieD) { c.classList.add("weg"); return; }
   const px = (pe.x - vak.x) / vak.b * b + pe.dx, py = (pe.y - vak.y) / vak.h * h + pe.dy;
   const buiten = px < 0 || px > b || py < 0 || py > h;
   c.classList.toggle("weg", buiten);
@@ -997,6 +1184,7 @@ function zetTijd(t) {
   document.querySelectorAll(".provincie").forEach((p) => p.classList.toggle("aan", p.dataset.naam === provNu));
   provLabels.forEach((l) => l.tekst.classList.toggle("aan", l.naam === provNu));
   gebiedCirkel.classList.toggle("aan", tijd >= 2023);
+  if (zuilEls) plaatsZuilen();
   gebiedTekst.classList.toggle("aan", tijd >= 2023);
 }
 
@@ -1079,7 +1267,7 @@ function profiel() {
         <div><dt>E-mail</dt><dd>yclaessen79@gmail.com</dd></div>
         <div><dt>Woonplaats</dt><dd>Tilburg</dd></div>
       </dl>
-      <p class="tip">Klik op een punt op de kaart, speel de tijdschuif af of open een project. Elk project opent als FME-workspace.</p>
+      <p class="tip">Klik op een punt op de kaart, speel de tijdschuif af of open een project. Probeer ook de 3D-knop, de nachtkaart en de terminal (toets <span class="toets">\`</span>).</p>
     </div>`;
 }
 function toon(ids, i = 0, punt = null) {
@@ -1130,6 +1318,7 @@ $("tijdlijn").addEventListener("click", (e) => { const knop = e.target.closest("
 function selecteer(id) {
   const k = KENMERKEN[id];
   stop();
+  if (drieD) zet3D(false);
   if (tijd < k.van) zetTijd(Math.min(k.van + 0.5, EIND));
   const punt = PUNTEN.find((p) => p.kenmerken.includes(id));
   if (punt) toon(punt.kenmerken, punt.kenmerken.indexOf(id), punt.id); else toon([id], 0, null);
@@ -1158,6 +1347,7 @@ $("projecten-inhoud").addEventListener("click", (e) => { const k = e.target.clos
 
 function openProject(id) {
   const p = PROJECTEN.find((x) => x.id === id);
+  if (drieD) zet3D(false);
   $("console").hidden = true;
   $("ws-pad").textContent = `Hanab / GEOhub / ${p.id}.fmw`;
   $("ws-titel").textContent = p.titel;
@@ -1260,6 +1450,8 @@ let logTimers = [];
 $("draai").addEventListener("click", () => {
   logTimers.forEach(clearTimeout); logTimers = [];
   $("ws").hidden = true;
+  $("terminal").hidden = true;
+  if (drieD) zet3D(false);
   const log = $("log"); log.innerHTML = "";
   $("console").hidden = false;
   zetTijd(BEGIN); stop();
@@ -1280,6 +1472,67 @@ $("draai").addEventListener("click", () => {
   });
 });
 $("console-dicht").addEventListener("click", () => { logTimers.forEach(clearTimeout); $("console").hidden = true; $("draai").focus(); });
+
+/* =========================================================================
+   Terminal. Een paar commando's voor wie verder kijkt dan de knoppen.
+   ========================================================================= */
+const COMMANDO = {
+  help: () => ["Commando's:", "  whoami              wie ben ik", "  ls                  lijst van projecten", "  open <project>      open een project als workspace", "  skills              vaardigheden", "  goto <plek>         tilburg, overijssel of nieuwegein", "  play                speel de tijdlijn af", "  3d / 2d             wissel van weergave", "  basemap topo|nacht  wissel de basiskaart", "  fme run             draai de loopbaan-workspace", "  contact             hoe je me bereikt", "  clear               scherm leegmaken"],
+  whoami: () => ["Youri Claessen", "GIS-specialist bij Hanab, sinds 2022 in de GEO-ICT", "FME - VertiGIS - ArcGIS Enterprise - Survey123 - NLCS++"],
+  ls: () => PROJECTEN.map((p) => `  ${p.id.padEnd(12)}${p.titel}`),
+  skills: () => VAARDIGHEDEN.map(([c, l]) => `  ${c}: ${l.join(", ")}`),
+  open: (arg) => { const p = PROJECTEN.find((x) => x.id === arg); if (!p) return [`fout: project "${arg || ""}" bestaat niet. Probeer ls.`]; kiesTab("projecten"); openProject(p.id); return [`${p.id}.fmw geopend`]; },
+  goto: (arg) => { if (!PLAATS[arg]) return ["fout: kies tilburg, overijssel of nieuwegein"]; if (drieD) zet3D(false); naarPlek(arg); return [`Naar ${arg}...`]; },
+  play: () => { if (drieD) zet3D(false); zetTijd(BEGIN); speel(); return ["Tijdlijn wordt afgespeeld"]; },
+  "3d": () => { zet3D(true); return ["3D-scène aan. Sleep om rond te draaien."]; },
+  "2d": () => { zet3D(false); return ["Terug naar 2D"]; },
+  basemap: (arg) => { if (!["topo", "nacht"].includes(arg)) return ["gebruik: basemap topo of basemap nacht"]; zetBasis(arg); return [`Basiskaart: ${arg}`]; },
+  fme: (arg) => { if (arg !== "run") return ["gebruik: fme run"]; sluitTerminal(); $("draai").click(); return []; },
+  contact: () => ["E-mail: yclaessen79@gmail.com", "Woonplaats: Tilburg"],
+  sudo: (arg) => arg === "hire youri" ? ["[sudo] wachtwoord voor recruiter: ********", "Toegang verleend.", "Volgende stap: mail naar yclaessen79@gmail.com"] : ["Dit incident wordt gemeld."],
+  ogr2ogr: () => ["Mooi geprobeerd. Hier doen we dat met FME."],
+  exit: () => { sluitTerminal(); return []; }
+};
+function schrijf(regels, klasse) {
+  const uit = $("terminal-uit");
+  regels.forEach((r) => { const s = document.createElement("span"); if (klasse) s.className = klasse; s.textContent = r + "\n"; uit.appendChild(s); });
+  uit.scrollTop = uit.scrollHeight;
+}
+function openTerminal() {
+  const t = $("terminal");
+  if (!t.hidden) { $("terminal-in").focus(); return; }
+  $("console").hidden = true;
+  t.hidden = false;
+  if (!$("terminal-uit").textContent) schrijf(["youri-shell 1.0 - typ help voor de commando's", ""]);
+  $("terminal-in").focus();
+}
+function sluitTerminal() { $("terminal").hidden = true; $("terminal-open").focus(); }
+const geschiedenis = []; let terug = 0;
+$("terminal-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const invoer = $("terminal-in").value.trim();
+  $("terminal-in").value = "";
+  if (!invoer) return;
+  geschiedenis.push(invoer); terug = geschiedenis.length;
+  schrijf([`$ ${invoer}`], "in");
+  if (invoer === "clear") { $("terminal-uit").textContent = ""; return; }
+  const [cmd, ...rest] = invoer.split(/\s+/);
+  const f = COMMANDO[cmd.toLowerCase()];
+  if (!f) { schrijf([`${cmd}: commando niet gevonden. Typ help.`], "fout"); return; }
+  const uit = f(rest.join(" ").toLowerCase());
+  schrijf(uit, uit[0]?.startsWith("fout") ? "fout" : "");
+});
+$("terminal-in").addEventListener("keydown", (e) => {
+  if (e.key === "ArrowUp" && terug > 0) { e.preventDefault(); $("terminal-in").value = geschiedenis[--terug]; }
+  if (e.key === "ArrowDown") { e.preventDefault(); terug = Math.min(geschiedenis.length, terug + 1); $("terminal-in").value = geschiedenis[terug] || ""; }
+  if (e.key === "Escape") sluitTerminal();
+});
+$("terminal-open").addEventListener("click", openTerminal);
+$("terminal-dicht").addEventListener("click", sluitTerminal);
+document.addEventListener("keydown", (e) => {
+  const typt = e.target.closest("input, textarea");
+  if (e.key === "`" && !typt) { e.preventDefault(); openTerminal(); }
+});
 
 /* =========================================================================
    Opstarten: laadscherm, inzoomvlucht, dan de loopbaan één keer afspelen
